@@ -55,8 +55,12 @@ class MusicXMLExtractor(object):
             root = elem.find('root/root-step').text
             alter_elem = elem.find('root/root-alter')
             alter = (alter_elem != None and alter_elem.text)
-            kind = elem.find('kind').text
-            chords.append((root, alter, kind))
+            if 'text' in elem.find('kind').attrib:
+                kind_attrib = elem.find('kind').attrib['text']
+                chords.append((root, alter, kind_attrib))
+            else:
+                kind = elem.find('kind').text
+                chords.append((root, alter, kind))
         return map(triplet_to_string, chords)
     
 
@@ -71,7 +75,54 @@ class MusicXMLExtractor(object):
                 chord_changes[transition] = 1
         return chord_changes
         
+        
+    def parse_melody_with_harmony(self):
+        def get_chord_from_harmony_tag(harmony_tag):
+            root = harmony_tag.find('root/root-step').text
+            alter_elem = harmony_tag.find('root/root-alter')
+            if alter_elem != None:
+                root = increment_note(root, int(alter_elem.text))
+            if 'text' in harmony_tag.find('kind').attrib:
+                kind_attrib = harmony_tag.find('kind').attrib['text']
+                return " ".join([root, kind_attrib])
+            else:
+                kind = harmony_tag.find('kind').text                
+                return " ".join([root, kind])
+            
+        def get_note_from_note_tag(note_tag):
+            pitch = note_tag.find("pitch")
+            if pitch != None: #in case the note is a rest
+                note = pitch.find("step").text
+                if pitch.find("alter") != None:
+                    note = increment_note(note, int(pitch.find("alter").text))
+                return note
+            else:
+                return None
+        
+        def write_note_to_dict(note, current_chord, note_chord_dict):
+            if not current_chord in note_chord_dict:
+                note_chord_dict[current_chord] = [0] * 12
+            ind = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].index(note)
+            note_chord_dict[current_chord][ind] += 1
+            
+        current_chord = None
+        note_chord_dict = {}
+        tree = ET.fromstringlist(self.xml)
+        for measure in tree.findall(".//measure"):
+            for child in measure:
+                if child.tag == 'harmony':
+                    current_chord = get_chord_from_harmony_tag(child)
+                if child.tag == 'note':
+                    note = get_note_from_note_tag(child)
+                    if current_chord != None and note != None:
+                        write_note_to_dict(note, current_chord, note_chord_dict)
+                        
+        return note_chord_dict
+                        
 if __name__ == "__main__":
-    filename = '/home/florian/workspace/SongCreator/MusicXML_files/Keith Richards, Mick Jagger - Angie.mxl'
+    filename = os.path.join(os.getcwd(), r"MusicXML_files/Antonio Carlos Jobim - The Girl From Ipanema.mxl")
+#    filename = os.path.join(os.getcwd(), r"MusicXML_files/Keith Richards, Mick Jagger - Angie.mxl")
     m = MusicXMLExtractor(filename)
     m.read_xml_from_zip()
+    print m.calc_chord_changes()
+    print m.parse_chords()
