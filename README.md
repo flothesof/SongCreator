@@ -15,6 +15,11 @@ Click the *Open .mxml file* to load a MusicXML file. The two tabs are then updat
 - The *Chord analysis tab* displays a bar plot with the chord transitions that appear in the tune and their frequency ![Screenshot](/Screenshots/2013_09_16_chords.png)
 - the *Melody analysis tab* displays a matrix with each row being the frequency of the twelve chromatic notes played over each chord in the song ![Screenshot](/Screenshots/2013_09_16_melody.png)
 
+Bibliography
+============
+1. D. Morris, I. Simon, and S. Basu, "Exposing Parameters of a Trained Dynamic Model for Interactive Music Creation.," in AAAI, 2008, pp. 784–791.
+2. I. Simon, D. Morris, and S. Basu, "MySong: automatic accompaniment generation for vocal melodies," in Proceedings of the SIGCHI Conference on Human Factors in Computing Systems, 2008, pp. 725–734.
+
 Links
 =====
 
