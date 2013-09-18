@@ -31,9 +31,11 @@ def triplet_to_string(triplet):
 class MusicXMLExtractor(object):
     def __init__(self, filename):
         self.filename = str(filename)
-        self.xml = None
+        self.tree = None
         
     def read_xml_from_zip(self):
+        """tries to read the MusicXML file given during initialisation and 
+        creates a tree from it"""
         if os.path.exists(self.filename):
             found = True
         else:
@@ -43,29 +45,33 @@ class MusicXMLExtractor(object):
             zf = zipfile.ZipFile(self.filename, mode='r')
             namelist = zf.namelist()
             if 'musicXML.xml' in namelist:
-                self.xml = zf.read('musicXML.xml').split('\n')
+                xml = zf.read('musicXML.xml').split('\n')
+                self.tree = ET.fromstringlist(xml)
         
-    def has_valid_xml(self):
-        return self.xml != None        
-
-    def parse_chords(self):
-        tree = ET.fromstringlist(self.xml)
-        chords = []
-        for elem in tree.findall('.//harmony'):
-            root = elem.find('root/root-step').text
-            alter_elem = elem.find('root/root-alter')
-            alter = (alter_elem != None and alter_elem.text)
-            if 'text' in elem.find('kind').attrib:
-                kind_attrib = elem.find('kind').attrib['text']
-                chords.append((root, alter, kind_attrib))
-            else:
-                kind = elem.find('kind').text
-                chords.append((root, alter, kind))
-        return map(triplet_to_string, chords)
+    def has_valid_data(self):
+        return self.tree != None        
     
 
-    def calc_chord_changes(self):
-        chords = self.parse_chords()
+    def parse_chord_changes(self):
+        """function that returns the chord changes in the song and their 
+        frequency as a dictionary"""
+        
+        def parse_chords(tree):
+            """function that parses a MusicXML and returns a list of chords"""
+            chords = []
+            for elem in tree.findall('.//harmony'):
+                root = elem.find('root/root-step').text
+                alter_elem = elem.find('root/root-alter')
+                alter = (alter_elem != None and alter_elem.text)
+                if 'text' in elem.find('kind').attrib:
+                    kind_attrib = elem.find('kind').attrib['text']
+                    chords.append((root, alter, kind_attrib))
+                else:
+                    kind = elem.find('kind').text
+                    chords.append((root, alter, kind))
+            return map(triplet_to_string, chords)
+            
+        chords = parse_chords(self.tree)
         chord_changes = {}
         for ind, val in enumerate(chords[:-1]):
             transition = "->".join([val, chords[ind + 1]])
@@ -107,8 +113,7 @@ class MusicXMLExtractor(object):
             
         current_chord = None
         note_chord_dict = {}
-        tree = ET.fromstringlist(self.xml)
-        for measure in tree.findall(".//measure"):
+        for measure in self.tree.findall(".//measure"):
             for child in measure:
                 if child.tag == 'harmony':
                     current_chord = get_chord_from_harmony_tag(child)
@@ -118,11 +123,45 @@ class MusicXMLExtractor(object):
                         write_note_to_dict(note, current_chord, note_chord_dict)
                         
         return note_chord_dict
-                        
-if __name__ == "__main__":
-    filename = os.path.join(os.getcwd(), r"MusicXML_files/Antonio Carlos Jobim - The Girl From Ipanema.mxl")
+
+    def guess_song_key(self):
+        """returns the key guessed from the song data
+        Examples: A m or C"""
+        for key in self.tree.findall(".//part/measure/attributes/key"):
+            fifths = int(key.find("fifths").text)
+            mode = key.find("mode").text
+        root = 'C'
+        sign = int(fifths>=0 or -1)
+        for i in range(abs(fifths)):
+            root = increment_note(root, 7 * sign)
+        return (root, mode)
+    
+def test_function1():
+    """tests the parse_chord_changes function"""
 #    filename = os.path.join(os.getcwd(), r"MusicXML_files/Keith Richards, Mick Jagger - Angie.mxl")
+    filename = os.path.join(os.getcwd(), r"MusicXML_files/Antonio Carlos Jobim - The Girl From Ipanema.mxl")
     m = MusicXMLExtractor(filename)
     m.read_xml_from_zip()
-    print m.calc_chord_changes()
-    print m.parse_chords()
+    print m.parse_chord_changes()
+    
+def test_function2():
+    """tests the parse_melody_with_harmony function"""
+    filename = os.path.join(os.getcwd(), r"MusicXML_files/Antonio Carlos Jobim - The Girl From Ipanema.mxl")
+    m = MusicXMLExtractor(filename)
+    m.read_xml_from_zip()
+    print m.parse_melody_with_harmony()
+
+def test_function3():
+    """tests the key guessing function"""
+    basepath = os.path.join(os.getcwd(), "MusicXML_files")
+    filenames = os.listdir(basepath)
+    for filename in filter(lambda s: s.endswith(".mxl"), filenames):        
+        m = MusicXMLExtractor(os.path.join(basepath, filename))
+        m.read_xml_from_zip()
+        print filename, m.guess_song_key()    
+    
+if __name__ == "__main__":
+#    test_function1()                        
+#    test_function2()                        
+    test_function3()                        
+    
