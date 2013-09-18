@@ -58,14 +58,17 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.pushButton.clicked.connect(self.openMusicXMLFile)
         
     def plot_chord_changes(self, chord_changes):
-        occurences = [chord_changes[key] for key in chord_changes]
+        sorted_occurences = [(key, chord_changes[key]) for key in sorted(
+                                        chord_changes, key=chord_changes.get)]
+        occurences = [item[1] for item in sorted_occurences]
+        new_labels = [item[0] for item in sorted_occurences]
         plt.figure(self.chord_ui.figure.number)
         plt.clf()
         ax = self.chord_ui.figure.add_subplot(111)
         ax.bar(np.arange(len(occurences)), occurences)
         plt.xticks(0.5 + np.arange(len(occurences)))
         locs, labels = plt.xticks()
-        plt.xticks(locs, chord_changes.keys(), rotation = 90)
+        plt.xticks(locs, new_labels, rotation = 90)
         plt.tight_layout()
         
         # refresh canvas
