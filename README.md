@@ -24,3 +24,4 @@ Links
 =====
 
 - [Snippet for integrating Matplotlib widget into a PyQt4 application](http://stackoverflow.com/questions/12459811/how-to-embed-matplotib-in-pyqt-for-dummies)
+- [Snippet for sorting a dict by values](http://stackoverflow.com/questions/613183/python-sort-a-dictionary-by-value)
