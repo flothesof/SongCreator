@@ -8,6 +8,7 @@ Created on Thu Sep 12 22:33:53 2013
 import os
 import zipfile 
 import xml.etree.cElementTree as ET
+import numpy as np
 
 #==============================================================================
 # Convenience functions
@@ -32,6 +33,8 @@ class MusicXMLExtractor(object):
     def __init__(self, filename):
         self.filename = str(filename)
         self.tree = None
+        self.chord_changes = None
+        self.note_chord_dict = None
         
     def read_xml_from_zip(self):
         """tries to read the MusicXML file given during initialisation and 
@@ -79,6 +82,7 @@ class MusicXMLExtractor(object):
                 chord_changes[transition] += 1
             else:
                 chord_changes[transition] = 1
+        self.chord_changes = chord_changes                
         return chord_changes
         
         
@@ -121,7 +125,7 @@ class MusicXMLExtractor(object):
                     note = get_note_from_note_tag(child)
                     if current_chord != None and note != None:
                         write_note_to_dict(note, current_chord, note_chord_dict)
-                        
+        self.note_chord_dict = note_chord_dict
         return note_chord_dict
 
     def guess_song_key(self):
@@ -158,7 +162,15 @@ def test_function3():
     for filename in filter(lambda s: s.endswith(".mxl"), filenames):        
         m = MusicXMLExtractor(os.path.join(basepath, filename))
         m.read_xml_from_zip()
-        print filename, m.guess_song_key()    
+        root, mode = m.guess_song_key()
+        note_to_watch = increment_note(root, -3 + -1)
+        note_chord_dict = m.parse_melody_with_harmony()
+        note_arr = np.array([note_chord_dict[key] for key in note_chord_dict])
+        total_notes = note_arr.sum()
+        ind = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].index(note_to_watch)
+        note_to_watch_count = note_arr[:, ind].sum()
+        print filename, root, mode, note_to_watch_count, total_notes, 
+        print "%.2f" % (note_to_watch_count / float(total_notes) * 100)
     
 if __name__ == "__main__":
 #    test_function1()                        
