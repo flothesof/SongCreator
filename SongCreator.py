@@ -133,8 +133,9 @@ class MainWindow(QtGui.QMainWindow):
     def analyzeFolder(self):
         folder_name = QtGui.QFileDialog.getExistingDirectory(self, 
              'Select directory', os.getcwd(), QtGui.QFileDialog.ShowDirsOnly)
-             
-        filenames = os.listdir(folder_name)
+        folder_name = str(folder_name)
+        
+        filenames = map(str, os.listdir(folder_name))
         
         # initialize global chord index
         all_chords = []
