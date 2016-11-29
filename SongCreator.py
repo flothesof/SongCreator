@@ -5,9 +5,17 @@ Created on Thu Sep 12 20:06:40 2013
 @author: florian
 """
 import sys
-from PyQt4 import QtGui, uic
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+try:
+    from PyQt4 import QtGui, uic
+    from PyQt4.QtGui import QMainWindow, QApplication
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+except ImportError:
+    from PyQt5 import QtGui, QtWidgets, uic
+    from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFileDialog
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -20,9 +28,9 @@ class MplFigure(object):
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas, parent)
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
-        QtGui.QMainWindow.__init__(self)
+        QMainWindow.__init__(self)
         
         # load the UI from the disk
         self.ui = uic.loadUi("SongCreator.ui", self)
@@ -39,14 +47,14 @@ class MainWindow(QtGui.QMainWindow):
     def initUI(self):
         # chord tab
         self.chord_ui = MplFigure(self)
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         layout.addWidget(self.chord_ui.toolbar)
         layout.addWidget(self.chord_ui.canvas)
         self.ui.tab.setLayout(layout)
         
         # melody tab
         self.melody_ui = MplFigure(self)
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         layout.addWidget(self.melody_ui.toolbar)
         layout.addWidget(self.melody_ui.canvas)
         self.ui.tab_2.setLayout(layout)
@@ -113,8 +121,9 @@ class MainWindow(QtGui.QMainWindow):
             self.plot_melody_matrix(note_chord_dict)
 
     def openMusicXMLFile(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', 
+        fname = QFileDialog.getOpenFileName(self, 'Open file', 
                 os.getcwd())
+        "".join(fname)
         self.ui.lineEdit.setText(fname)
         self.mxml_extractor = MusicXML_utility.MusicXMLExtractor(fname)
         self.mxml_extractor.read_xml_from_zip()
@@ -131,8 +140,8 @@ class MainWindow(QtGui.QMainWindow):
             self.plot_melody_matrix(note_chord_dict)
 
     def analyzeFolder(self):
-        folder_name = QtGui.QFileDialog.getExistingDirectory(self, 
-             'Select directory', os.getcwd(), QtGui.QFileDialog.ShowDirsOnly)
+        folder_name = QFileDialog.getExistingDirectory(self, 
+             'Select directory', os.getcwd(), QFileDialog.ShowDirsOnly)
         folder_name = str(folder_name)
         
         filenames = map(str, os.listdir(folder_name))
@@ -152,7 +161,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # loop over files in folder
         for filename in filter(lambda s: s.endswith(".mxl"), filenames):        
-            print filename
+            print(filename)
             m = MusicXML_utility.MusicXMLExtractor(
                                     os.path.join(folder_name, filename))
             m.read_xml_from_zip()
@@ -217,7 +226,7 @@ class MainWindow(QtGui.QMainWindow):
         self.folder_ui.canvas.draw() # refresh canvas
                                         
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())

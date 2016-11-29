@@ -172,7 +172,7 @@ def test_function1():
             r"MusicXML_files/Antonio Carlos Jobim - The Girl From Ipanema.mxl")
     m = MusicXMLExtractor(filename)
     m.read_xml_from_zip()
-    print m.parse_chord_changes()
+    print(m.parse_chord_changes())
     
 def test_function2():
     """tests the parse_melody_with_harmony function"""
@@ -180,7 +180,7 @@ def test_function2():
             r"MusicXML_files/Antonio Carlos Jobim - The Girl From Ipanema.mxl")
     m = MusicXMLExtractor(filename)
     m.read_xml_from_zip()
-    print m.parse_melody_with_harmony()
+    print(m.parse_melody_with_harmony())
 
 def test_function3():
     """tests the key guessing function"""
@@ -197,8 +197,8 @@ def test_function3():
         ind = ['C', 'C#', 'D', 'D#', 'E', 'F',
                        'F#', 'G', 'G#', 'A', 'A#', 'B'].index(note_to_watch)
         note_to_watch_count = note_arr[:, ind].sum()
-        print filename, root, note_to_watch_count, total_notes, 
-        print "%.2f" % (note_to_watch_count / float(total_notes) * 100)
+        print(filename, root, note_to_watch_count, total_notes)
+        print("%.2f" % (note_to_watch_count / float(total_notes) * 100))
     
 def test_function4():
     # initialize global chord index
@@ -218,7 +218,7 @@ def test_function4():
     filenames = os.listdir(basepath)
     # loop over files in folder
     for filename in filter(lambda s: s.endswith(".mxl"), filenames):        
-        print filename
+        print(filename)
         m = MusicXMLExtractor(os.path.join(
                                                     basepath, filename))
         m.read_xml_from_zip()
