@@ -98,7 +98,7 @@ class MusicXMLExtractor(object):
             zf = zipfile.ZipFile(self.filename, mode='r')
             namelist = zf.namelist()
             if 'musicXML.xml' in namelist:
-                xml = zf.read('musicXML.xml').split('\n')
+                xml = zf.read('musicXML.xml').decode().split('\n')
                 self.tree = ET.fromstringlist(xml)
         
     def has_valid_data(self):

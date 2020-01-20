@@ -5,16 +5,10 @@ Created on Thu Sep 12 20:06:40 2013
 @author: florian
 """
 import sys
-try:
-    from PyQt4 import QtGui, uic
-    from PyQt4.QtGui import QMainWindow, QApplication
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
-except ImportError:
-    from PyQt5 import QtGui, QtWidgets, uic
-    from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFileDialog
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from PyQt5 import QtGui, QtWidgets, uic
+from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFileDialog
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 import matplotlib.pyplot as plt
 import os
@@ -121,9 +115,8 @@ class MainWindow(QMainWindow):
             self.plot_melody_matrix(note_chord_dict)
 
     def openMusicXMLFile(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', 
+        fname, _ = QFileDialog.getOpenFileName(self, 'Open file',
                 os.getcwd())
-        "".join(fname)
         self.ui.lineEdit.setText(fname)
         self.mxml_extractor = MusicXML_utility.MusicXMLExtractor(fname)
         self.mxml_extractor.read_xml_from_zip()
